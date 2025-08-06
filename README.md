@@ -51,7 +51,7 @@ The main goal is to generate actionable insights from tech job listings, and cat
 
 ---
 
-## 📌 Sample Insights
+## 📌 Insights
 
 - 64% of roles are onsite
 - Most jobs require 3–6 years of experience
@@ -74,11 +74,11 @@ The main goal is to generate actionable insights from tech job listings, and cat
 
 ## 🔗 Related Links
 
-- [View in Notion](https://notion.so/your-link) *(if applicable)*
-- [Live dashboard](#) *(if ever published online)*
+- [View in Notion](https://www.notion.so/Tech-Job-Market-Analysis-2025-236ceee0eafa81d49d68feb7ec4ec681) 
+- 
 
 ---
 
 ## 📬 Contact
 
-Feel free to reach out via [LinkedIn](https://linkedin.com/in/tuusuario) or follow me for more dashboards and automation use cases.
+Feel free to reach out via [LinkedIn](https://www.linkedin.com/in/estefania-cervera/) or follow me for more dashboards and automation use cases.
