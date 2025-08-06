@@ -64,10 +64,10 @@ The main goal is to generate actionable insights from tech job listings, and cat
 
 | File | Description |
 |------|-------------|
-| `JobMarket2025.pbix` | Power BI dashboard |
-| `dataset.csv` | Dataset used for analysis |
-| `n8n_workflow.json` | Automation to classify job descriptions |
-| `images/` | Dashboard screenshots |
+| `JobMarket2025.pbix` | Power BI dashboard with full analysis |
+| `jobs_dataset.xlsx` | Raw dataset with original job postings |
+| `LLM Analysis Jobs.xlsx` | Enriched dataset with structured outputs from LLM |
+| `jobs categories.json` | N8n automation flow using Google Gemini |
 | `README.md` | This project summary |
 
 ---
