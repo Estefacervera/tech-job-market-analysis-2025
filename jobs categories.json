@@ -1,0 +1,315 @@
+{
+  "name": "jobs categories",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        0
+      ],
+      "id": "9a330918-5b23-4dda-87c3-3e72332806a0",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "https://drive.google.com/file/d/1uTGyLn7oTjTKM85sINLIC0ensxyiRSVG/view?usp=drive_link",
+          "mode": "url"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        64,
+        0
+      ],
+      "id": "3a8595c3-d506-439e-ab13-7579231a1b15",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "dyHg9HRwugmIrV0p",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "description",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        384,
+        0
+      ],
+      "id": "e4ce7366-f8bd-4ebf-9399-1d60a781674a",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        240,
+        0
+      ],
+      "id": "226a088a-8e42-41cc-847e-a66e3c14e60d",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.description }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are a talent acquisition analyst specialized in technology roles. Based on the position title and the job description, extract and return the following structured JSON.\n\nUse concise values. If something is not mentioned, return null or an empty array. This data will be used in an analytics report, so it must be consistent and clean.\nTu tarea principal es ayudar a categorizar los nombres de las vacantes para analizar cuales se repiten más, y por cada vacante analizar el detalle de la misma y clasificar estudios requeridos, habilidades, modalidad de trabajo y la categoría del cargo. Si encuentras información sobre años de experiencia requerido, tambien extrae esa información, solo el número mínimo de años de experiencia que se mencionen en la vacante\n\nInput:\n---\nJob Description:\n{{ $json.description }}\n\nPosition Title: {{ $json.positionName }}\nRecord ID: {{ $json.recordId }}\n---\n\nReturn the following JSON:\n\n{\n  \"recordId\": {{ $json.recordId }},\n  \"positionName\": \"{{ $json.positionName }}\",\n  \"jobCategory\": \"\",             // Example: \"Data Scientist\", \"AI Engineer\", \"BI Analyst\", \"AI Manager\", \"Software Developer\". For this jobcategory, if the position name has multiple categories choose just one based on the main responsabilities and activities of the role, Example: Data scientist, youtube research the value would be \"Data Scientist\" if the role is mainly about data science activities\n  \"requiredStudies\": \"\",         // e.g., \"Bachelor’s degree in Computer Science\"\n  \"leadership\": false,           // true if leadership is mentioned (e.g., manager, lead, head)\n  \"workModality\": \"Onsite\",      // One of: Remote, Hybrid, Onsite (default to Onsite if unclear)\n  \"skills\": [ ],                  // List of key technical skills or tools (e.g., Python, SQL, TensorFlow)\n  \"Years of experience\":\"\" //Example: \"3\", \"5\", \"1\" just use numbers, not words\n}\n"
+            }
+          ]
+        },
+        "batching": {
+          "batchSize": 3,
+          "delayBetweenBatches": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        848,
+        -128
+      ],
+      "id": "46a4c8c8-be97-42de-93d3-42f47bb3c2e1",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-pro-002",
+        "options": {
+          "temperature": 0.8,
+          "topP": 0.5
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        784,
+        96
+      ],
+      "id": "d64c3b3d-dc5c-4e70-b337-e389e73f5714",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "nlUY8jkpKqc6M64j",
+          "name": "Google Gemini(PaLM) Api Proyectos P"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Extrae y limpia el texto\nconst raw = $json.text;\nconst cleaned = raw.replace(/```json|```/g, \"\").trim();\n\n// Parsea a objeto JSON\nconst parsed = JSON.parse(cleaned);\n\n// Devuelve el objeto con el recordId original\nreturn {\n  recordId: $json.recordId,\n  llm_output: parsed\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        -144
+      ],
+      "id": "79a9cf40-f9bf-4d5a-b2c7-0c41b741186d",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map((item, index) => {\n  return {\n    ...item,\n    json: {\n      ...item.json,\n      recordId: index,\n      positionName: item.json.positionName\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        528,
+        0
+      ],
+      "id": "33ebde0c-5f11-42ad-9f5f-dd9d51eec54a",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "recordId",
+        "joinMode": "keepEverything",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1408,
+        -16
+      ],
+      "id": "9a71968d-c332-453d-945f-0e07be416d92",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1584,
+        -16
+      ],
+      "id": "991c7956-babb-4c48-ba90-ebbbcfa45d79",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1792,
+        -16
+      ],
+      "id": "405cc2b5-61c1-464c-9a0e-8f945aa32889",
+      "name": "Extract from File1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Extract from File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "95de3e7e-4f78-458b-944a-1006904a7b52",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5ef65c0bf72284525dd70e6f6c58978744030e215203606c922a17bef467b647"
+  },
+  "id": "Zwfkz23cb96AZFlb",
+  "tags": []
+}
