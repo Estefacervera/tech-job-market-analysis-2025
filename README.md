@@ -47,7 +47,8 @@ The main goal is to generate actionable insights from tech job listings, and cat
 - Work modality distribution
 - Most required technical skills
 
-![Dashboard](images/dashboard_1.png)
+
+
 
 ---
 
